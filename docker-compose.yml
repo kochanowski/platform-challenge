@@ -1,0 +1,74 @@
+version: "3.7"
+
+services:
+  traefik:
+    image: "traefik:v2.8"
+    container_name: "traefik"
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  auth-api:
+    build: auth-api/
+    env_file: auth-api/code/local_env
+    command: python main.py
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth-api.entrypoints=web"
+      - "traefik.http.routers.auth-api.rule=(Host(`platform`) && PathPrefix(`/auth`))"
+      - "traefik.http.routers.auth-api.middlewares=auth-api-stripprefix"
+      - "traefik.http.middlewares.auth-api-stripprefix.stripprefix.prefixes=/auth"
+      - "traefik.http.services.auth-api.loadbalancer.server.port=5000"
+
+  core-api:
+    build: core-api/
+    env_file: core-api/code/local_env
+    command: python main.py
+    environment:
+      - RQ_REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+      - FLASK_ENV=development
+    depends_on:
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.core-api.entrypoints=web"
+      - "traefik.http.routers.core-api.rule=(Host(`platform`) && PathPrefix(`/transaction`))"
+      - "traefik.http.services.core-api.loadbalancer.server.port=5000"
+
+  psp-connector:
+    build: psp-connector/
+    env_file: psp-connector/code/local_env
+    ports:
+      - 5002:5000
+    command: python main.py
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis"
+    ports:
+      - 6379:6379
+    restart: always
+
+
+
+  # whoami:
+  #   image: "traefik/whoami"
+  #   container_name: "simple-service"
+  #   command:
+  #     - --port=8082
+  #   labels:
+  #     - "traefik.enable=true"
+  #     #- "traefik.http.routers.whoami.rule=Host(`localhost`)"
+  #     - "traefik.http.routers.whoami.rule=(Host(`platform`) && PathPrefix(`/lala`))"
+  #     - "traefik.http.routers.whoami.entrypoints=web"
+  #     - "traefik.http.services.whoami.loadbalancer.server.port=8082"

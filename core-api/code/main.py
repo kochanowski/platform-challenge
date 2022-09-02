@@ -57,14 +57,18 @@ def health():
 
 if __name__ == '__main__':
     # Environment variables
-    redis_url: str = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+    #redis_url: str = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
     http_port: int = int(os.getenv('HTTP_PORT', 5000))
     jwt_secret: str = os.environ['JWT_SECRET']
 
     # Flask config
-    app.config['RQ_DEFAULT_URL'] = redis_url
+    #app.config['RQ_DEFAULT_URL'] = redis_url
     app.config['JWT_SECRET'] = jwt_secret
 
+    app.config['RQ_REDIS_URL'] = "redis://redis:6379/0"
+
+    print("AAAAAAAAA")
+    print(app.config)
     # Run app
     app.run(host='0.0.0.0', port=http_port, threaded=True)
     
