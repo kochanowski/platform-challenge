@@ -42,6 +42,7 @@ services:
       - "traefik.http.routers.core-api.entrypoints=web"
       - "traefik.http.routers.core-api.rule=(Host(`platform`) && PathPrefix(`/transaction`))"
       - "traefik.http.services.core-api.loadbalancer.server.port=5000"
+      
   psp-connector:
     build: psp-connector/
     env_file: psp-connector/code/local_env
@@ -50,6 +51,7 @@ services:
     #   - FLASK_ENV=development    
     depends_on:
       - redis
+      
   redis:
     image: "redis"
     ports:
