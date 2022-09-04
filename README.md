@@ -1,6 +1,6 @@
 ## 1. Overview
 
-All 3 services of `platform-challenge` are configured with [docker-compose](https://docs.docker.com/compose/install/) with Dockerfile's for each service and [Treafik](https://doc.traefik.io/traefik/) in front of them. 
+All 3 services of `platform-challenge` are configured with [docker-compose](https://docs.docker.com/compose/install/) with Dockerfiles for each service and [Treafik](https://doc.traefik.io/traefik/) in front of them. 
 
 ## 2. Configuration
 
@@ -12,10 +12,10 @@ All 3 services of `platform-challenge` are configured with [docker-compose](http
   `core-api/code/local_env`
   `psp-connector/code/local_env`
 
-## 3. Running on local machine
+## 3. Running on the local machine
 * To run the stack in background run `docker-compose up -d`
 * Traefik dashboard is available at `http://localhost:8080/`
-* To rebuild the image please run `docker-compose up --force-recreate --build`
+* To rebuild the image run `docker-compose up --force-recreate --build`
 * To run services with `DEBUG` mode for each service uncomment the following lines in `docker-compose` file:
 ```
     environment:
