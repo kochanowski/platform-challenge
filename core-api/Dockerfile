@@ -14,4 +14,4 @@ COPY ./code .
 
 RUN chown -R docker-user:docker-user /code
 
-#USER docker-user
+USER docker-user

@@ -8,6 +8,11 @@ from flask import Flask, jsonify, current_app, request
 from flask_rq2 import RQ
 
 app = Flask(__name__)
+
+# I needed to put it here, because RQ doesn't want to change the REDIS_URL after later declaration
+redis_url: str = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+app.config['RQ_REDIS_URL'] = redis_url
+
 rq = RQ(app)
 
 
@@ -57,18 +62,16 @@ def health():
 
 if __name__ == '__main__':
     # Environment variables
+
+    # it doesn't work here 
     #redis_url: str = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
     http_port: int = int(os.getenv('HTTP_PORT', 5000))
     jwt_secret: str = os.environ['JWT_SECRET']
 
     # Flask config
-    #app.config['RQ_DEFAULT_URL'] = redis_url
+    app.config['RQ_DEFAULT_URL'] = redis_url
     app.config['JWT_SECRET'] = jwt_secret
 
-    app.config['RQ_REDIS_URL'] = "redis://redis:6379/0"
-
-    print("AAAAAAAAA")
-    print(app.config)
     # Run app
     app.run(host='0.0.0.0', port=http_port, threaded=True)
     

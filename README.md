@@ -1,69 +1,51 @@
-# platform-challenge
+## 1. Overview
 
-## Background
+All 3 services of `platform-challenge` are configured with [docker-compose](https://docs.docker.com/compose/install/) with Dockerfile's for each service and [Treafik](https://doc.traefik.io/traefik/) in front of them. 
 
-Gr4vy is a building a payment orchestration platform.
+## 2. Configuration
 
-As a Platform engineer, you are tasked with improving the engineering efficiency by producing automation tools that provision services in an efficient, predictable and reproducible way.
+* Please put into your `/etc/hosts` the following line to get proper DNS working:
+`127.0.0.1       platform` 
 
-In this exercise we use [HTTPie](https://github.com/httpie/httpie) in our examples for clarity.
+* Each service is configured via environment variables:
+  `auth-api/code/local_env`
+  `core-api/code/local_env`
+  `psp-connector/code/local_env`
 
-## Architecture Overview
-
+## 3. Running on local machine
+* To run the stack in background run `docker-compose up -d`
+* Traefik dashboard is available at `http://localhost:8080/`
+* To rebuild the image please run `docker-compose up --force-recreate --build`
+* To run services with `DEBUG` mode for each service uncomment the following lines in `docker-compose` file:
 ```
-+----------------------------------+
-|            Merchant              |
-+-+--------^------------+--------^-+
-  |        |            |        |
- (1)      (2)          (3)      (5)
-  |        |            |        |
-+-v--------+-+        +-v--------+-+        +-----------------+
-|  Auth API  |        |  Core API  |        |  PSP Connector  | 
-+------------+        +------+-----+        +---------^-------+
-                             |                        |
-                            (4)                      (6)
-                             |                        |
-                      +------v------------------------+-------+
-                      |          Redis Message Queue          |
-                      +---------------------------------------+
+    environment:
+      - FLASK_ENV=development    
 ```
 
-There are 3 distinct services:
+## 4. Examples
+```
+$ http POST http://platform/auth/token username=alice password=password
+HTTP/1.1 200 OK
+Content-Length: 179
+Content-Type: application/json
+Date: Sun, 04 Sep 2022 17:34:12 GMT
+Server: hypercorn-h11
 
-- [Auth API] - Creates authentication tokens to valid users.
-- [Core API] - Processes transaction requests.
-- [PSP Connector] - Processes the transactions with a Payment Service Provider (PSP).
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFsaWNlIiwiZW5hYmxlZCI6dHJ1ZSwiZXhwIjoxNjYyMzEyODgyfQ.uhb1HM-M9UM8BCWtDRRgPYR6njBGEByLHQwxmoSqdz0"
+}
+```
+```
+$ http POST http://platform/transaction amount=100 currency=USD   token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFsaWNlIiwiZW5hYmxlZCI6dHJ1ZSwiZXhwIjoxNjYyMzEyODgyfQ.uhb1HM-M9UM8BCWtDRRgPYR6njBGEByLHQwxmoSqdz0
+HTTP/1.1 200 OK
+Content-Length: 44
+Content-Type: application/json
+Date: Sun, 04 Sep 2022 17:34:36 GMT
+Server: Werkzeug/2.0.2 Python/3.9.7
 
-A transaction flow is as follows:
-
-1. A merchant authenticates with the [Auth API] by providing a valid username and password.
-2. An authentication token that is valid for 30 seconds is returned.
-3. Use this authentication token to make a transaction request to the [Core API].
-4. The [Core API] submits the transaction to a message queue for further background processing.
-5. A successful response is returned.
-6. Meanwhile, a [PSP Connector] processes the transaction from the message queue by connecting to a Payment Service Provider.
-
-We use environment variables to configure a service.
-
-## Your task
-
-- Read the documentation for each service. Run and test them to make sure they work as expected.
-- Once you're familiar with the services, use your preferred tools to automate provisioning of a **local development** environment.
-- Be sure to include external dependencies like Redis and configuration management.
-- In order for a microservices-based architecture to work best, implement a HTTP router in front of the services that routes requests to the correct service. A popular solution is path-based routing:
-    - http://platform/auth/* → http://auth-api/*
-    - http://platform/transaction/* → http://core-api/*
-- Make your automation available on a public GitHub repository with a `README` on how to get things started.
-
-Don't worry too much about making this production ready. We may discuss production considerations with you later on.
-
-Please spend no more than 1-2 hours on this exercise.
-
-## Bonus (Optional)
-
-- Containerise services.
-- Apply the [Twelve Factor App](https://12factor.net/) methodology.
-
-[Auth API]: auth-api
-[Core API]: core-api
-[PSP Connector]: psp-connector
+{
+    "amount": 100,
+    "currency": "USD",
+    "user_id": 1
+}
+```
