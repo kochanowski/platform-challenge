@@ -21,7 +21,6 @@ All 3 services of `platform-challenge` are configured with [docker-compose](http
     environment:
       - FLASK_ENV=development    
 ```
-
 ## 4. Examples
 ```
 $ http POST http://platform/auth/token username=alice password=password
